@@ -1,0 +1,70 @@
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar">
+      <h3>Tablas</h3>
+
+      <ul>
+        <li *ngFor="let t of tablas" (click)="usarTabla(t)">
+          {{ t }}
+        </li>
+      </ul>
+    </div>
+
+    <div *ngIf="columnasTabla.length > 0">
+      <h4>Columnas</h4>
+      <ul>
+        <li *ngFor="let col of columnasTabla">
+          {{ col }}
+        </li>
+      </ul>
+    </div>
+
+  </aside>
+
+  <div class="editor">
+    <textarea
+    [(ngModel)]="sql"
+    (keydown)="onKeyDown($event)"
+    (input)="onInputChange()"
+    >
+
+  </textarea>
+
+  <div *ngIf="sugerencias.length > 0" class="suggestions">
+      <div *ngFor="let s of sugerencias" (click)="insertarSugerencias(s)">
+        {{ s }}
+      </div>
+    </div>
+
+    <button (click)="ejecutar()">Run</button>
+
+    <div class="history">
+      <h3>Historial</h3>
+      <ul>
+        <li *ngFor="let h of historial" (click)="sql = h">
+          {{ h }}
+        </li>
+      </ul>
+    </div>
+
+    <div *ngIf="errorMsg" style="color: red">
+      {{ errorMsg }}
+    </div>
+
+  </div>
+
+  <div class="results" *ngIf="resultados.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th *ngFor="let col of columnas">{{ col }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let fila of resultados">
+          <td *ngFor="let col of columnas">{{ fila[col] }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
