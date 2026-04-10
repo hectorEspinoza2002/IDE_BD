@@ -28,7 +28,7 @@
 
 textarea {
   width: 100%;
-  height: 100px;
+  height: 120px;
   background: #1e1e1e;
   color: #00ffcc;
   border: 1px solid #333;
@@ -50,6 +50,61 @@ button {
 .results {
   flex: 1;
   overflow: auto;
+  border-bottom: 1px solid #333;
+}
+
+.history {
+  max-height: 180px;
+  overflow-y: auto;
+  background: #1b1b1b;
+  padding: 10px;
+  border-top: 1px solid #333;
+}
+
+.history table{
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.history th{
+  background: #2d2d2d;
+  padding: 6px;
+  text-align: left;
+}
+
+.history td{
+  padding: 5px;
+  border-bottom: 1px solid #333;
+}
+
+.history tr:hover{
+  background: #333;
+  cursor: pointer;
+}
+
+/* sql texto */
+.history .action{
+  color: #00ffcc;
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.history ul {
+  list-style: none;
+  padding: 0;
+}
+
+.history li {
+  cursor: pointer;
+  padding: 5px;
+}
+
+.history li:hover {
+  background-color: #333;;
 }
 
 table {
@@ -64,4 +119,14 @@ th, td {
 
 th {
   background: #333;
+}
+
+.error {
+  color: red;
+  margin-top: 5px;
+}
+
+.active {
+  background: #007acc;
+  color: white;
 }

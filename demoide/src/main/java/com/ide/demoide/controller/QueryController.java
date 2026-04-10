@@ -59,4 +59,10 @@ public class QueryController {
                 (rs, rowNum) -> rs.getString("Field"));
     }
 
+    @GetMapping("/databases")
+    public List<String> getDatabases() {
+        return jdbcTemplate.queryForList("SHOW DATABASES", String.class);
+    }
+    
+
 }

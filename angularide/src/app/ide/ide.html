@@ -1,14 +1,21 @@
 <div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar">
-      <h3>Tablas</h3>
 
-      <ul>
-        <li *ngFor="let t of tablas" (click)="usarTabla(t)">
-          {{ t }}
-        </li>
-      </ul>
-    </div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h3>Bases De Datos</h3>
+    <ul>
+      <li *ngFor="let db of databases" (click)="seleccionarDB(db)" [class.active]="db === dbActual">
+        {{ db }}
+      </li>
+    </ul>
+    
+    <h3>Tablas</h3>
+
+    <ul>
+      <li *ngFor="let t of tablas" (click)="usarTabla(t)">
+        {{ t }}
+      </li>
+    </ul>
 
     <div *ngIf="columnasTabla.length > 0">
       <h4>Columnas</h4>
@@ -18,53 +25,84 @@
         </li>
       </ul>
     </div>
-
   </aside>
 
-  <div class="editor">
-    <textarea
-    [(ngModel)]="sql"
-    (keydown)="onKeyDown($event)"
-    (input)="onInputChange()"
-    >
+  <!-- MAIN -->
+  <div class="main">
 
-  </textarea>
+    <!-- EDITOR -->
+    <div class="editor">
+      
+      <textarea
+        [(ngModel)]="sql"
+        (keydown)="onKeyDown($event)"
+        (input)="onInputChange()"
+      ></textarea>
 
-  <div *ngIf="sugerencias.length > 0" class="suggestions">
-      <div *ngFor="let s of sugerencias" (click)="insertarSugerencias(s)">
-        {{ s }}
+      <div *ngIf="sugerencias.length > 0" class="suggestions">
+        <div *ngFor="let s of sugerencias" (click)="insertarSugerencias(s)">
+          {{ s }}
+        </div>
+      </div>
+
+      <button (click)="ejecutar()">Run</button>
+
+      <div *ngIf="errorMsg" class="error">
+        {{ errorMsg }}
       </div>
     </div>
 
-    <button (click)="ejecutar()">Run</button>
+    <!-- RESULTADOS -->
+    <div class="results" *ngIf="resultados.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th *ngFor="let col of columnas">{{ col }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let fila of resultados">
+            <td *ngFor="let col of columnas">{{ fila[col] }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <div class="history">
+    <!-- HISTORIAL -->
+    <!-- <div class="history">
       <h3>Historial</h3>
       <ul>
         <li *ngFor="let h of historial" (click)="sql = h">
           {{ h }}
         </li>
       </ul>
-    </div>
+    </div> -->
+    <div class="history">
+      <h3>Historial</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Time</th>
+            <th>Action</th>
+            <th>Message</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
 
-    <div *ngIf="errorMsg" style="color: red">
-      {{ errorMsg }}
+        <tbody>
+          <tr *ngFor="let h of historial" (click)="sql = h.action">
+            <td>{{ h.id }}</td>
+            <td>{{ h.horaseg }}</td>
+            <td class="action">{{ h.action}}</td>
+            <td>{{ h.message}}</td>
+            <td>{{h.time }}</td>
+          </tr>
+        </tbody>
+
+      </table>
     </div>
 
   </div>
 
-  <div class="results" *ngIf="resultados.length > 0">
-    <table>
-      <thead>
-        <tr>
-          <th *ngFor="let col of columnas">{{ col }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let fila of resultados">
-          <td *ngFor="let col of columnas">{{ fila[col] }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 </div>

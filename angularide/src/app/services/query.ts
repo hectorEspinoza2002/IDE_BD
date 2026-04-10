@@ -11,7 +11,7 @@ export class Query {
   constructor(private http:HttpClient){}
 
   ejecutarSQL(sql: string){
-    return this.http.post<any[]>(this.api, {sql});
+    return this.http.post<any>(this.api, {sql});
   }
 
   getTables(){
@@ -20,6 +20,10 @@ export class Query {
 
   getColumns(tabla: string){
     return this.http.get<string[]>(`http://localhost:8080/api/columns/${tabla}`);
+  }
+
+  getDatabases(){
+    return this.http.get<string[]>('http://localhost:8080/api/databases');
   }
 
 }

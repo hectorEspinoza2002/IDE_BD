@@ -18,7 +18,7 @@ public class TextConexion implements CommandLineRunner{
         String sql = "SELECT 1";
         Integer resultado = jdbcTemplate.queryForObject(sql, Integer.class);
 
-        System.out.println("REsultado: "+resultado);
+        System.out.println("Resultado: "+resultado);
 
     }
 
