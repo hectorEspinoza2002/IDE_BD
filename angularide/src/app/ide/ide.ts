@@ -3,8 +3,8 @@ import { AfterViewInit, Component } from '@angular/core';
 import { Query } from '../services/query';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import 'codemirror/mode/sql/sql';
-import * as CodeMirror from 'codemirror';
+//import 'codemirror/mode/sql/sql';
+//import * as CodeMirror from 'codemirror';
 import { timestamp } from 'rxjs';
 
 @Component({
@@ -56,7 +56,7 @@ export class Ide {
   ejecutar(){
     this.errorMsg = '';
 
-    
+
     if(!this.sql.trim()) return;
 
     const inicio = performance.now();
@@ -65,7 +65,7 @@ export class Ide {
 
     this.queryService.ejecutarSQL(query).subscribe({
       next: (res:any) => {
-        
+
         const fin = performance.now();
         const tiempo = ((fin - inicio) / 1000).toFixed(3);
         //const hora = new Date().toLocaleTimeString();
@@ -93,7 +93,7 @@ export class Ide {
           message: res.message || (res.rows + ' rows'),
           //message: res.length + ' rows',
           horaseg: hora,
-          
+
         });
       },
       error: () => {
@@ -114,7 +114,7 @@ export class Ide {
   // ejecutar(){
   //   this.errorMsg = '';
 
-    
+
   //   if(!this.sql.trim()) return;
 
   //   const inicio = performance.now();
@@ -123,7 +123,7 @@ export class Ide {
 
   //   this.queryService.ejecutarSQL(query).subscribe({
   //     next: (res:any[]) => {
-        
+
   //       const fin = performance.now();
   //       const tiempo = ((fin - inicio) / 1000).toFixed(3);
   //       //const hora = new Date().toLocaleTimeString();
@@ -140,7 +140,7 @@ export class Ide {
   //         action: query,
   //         message: res.length + ' rows',
   //         horaseg: hora,
-          
+
   //       });
   //     },
   //     error: (err) => {
@@ -157,7 +157,7 @@ export class Ide {
   //   });
 
   // }
-  
+
   // ejecutar() {
   //   //console.log(this.sql);
 
@@ -201,6 +201,7 @@ export class Ide {
     });
   }
 
+  /*
   usarTabla(tabla: string){
     this.queryService.getColumns(tabla).subscribe(cols => {
       this.columnasTabla = cols;
@@ -208,6 +209,23 @@ export class Ide {
       this.sql = `SELECT ${cols.join(', ')} FROM ${tabla};`;
     });
   }
+    */
+
+  toggleTabla(db: string, tabla: string) {
+  if (this.tablaExpandida === tabla) {
+    this.tablaExpandida = null;
+    return;
+  }
+
+  this.tablaExpandida = tabla;
+
+  this.queryService.getColumns(tabla).subscribe(cols => {
+    this.columnasPorTabla[tabla] = cols;
+
+    // Mantener tu funcionalidad actual 👇
+    this.sql = `SELECT ${cols.join(', ')} FROM ${tabla};`;
+  });
+}
 
   onInputChange(){
     const texto = this.sql.toLowerCase();
@@ -224,6 +242,7 @@ export class Ide {
     this.sugerencias = [];
   }
 
+  /*
   dbActual: string = '';
 
   seleccionarDB(db: string){
@@ -237,11 +256,41 @@ export class Ide {
       this.cargarTablas();
     });
   }
+    */
+
+  toggleDB(db: string) {
+  if (this.dbExpandida === db) {
+    this.dbExpandida = null;
+    return;
+  }
+
+  this.dbExpandida = db;
+  this.tablaExpandida = null;
+
+  const query = `USE ${db};`;
+
+  this.queryService.ejecutarSQL(query).subscribe(() => {
+    this.queryService.getTables().subscribe(res => {
+      this.tablasPorDB[db] = res;
+    });
+  });
+}
 
   cargarTablas(){
     this.queryService.getTables().subscribe(res => {
       this.tablas = res;
     });
   }
+
+  dbExpandida: string | null = null;
+  tablaExpandida: string | null = null;
+
+// Nuevo: estructuras tipo mapa
+  tablasPorDB: { [key: string]: string[] } = {};
+  columnasPorTabla: { [key: string]: string[] } = {};
+
+
+
+
 
 }

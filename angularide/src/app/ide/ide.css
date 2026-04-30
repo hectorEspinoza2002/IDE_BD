@@ -130,3 +130,20 @@ th {
   background: #007acc;
   color: white;
 }
+
+.db-item {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 4px;
+}
+
+.tabla-item {
+  cursor: pointer;
+  margin-left: 15px;
+  padding: 2px;
+}
+
+.columna-item {
+  margin-left: 30px;
+  color: #aaa;
+}
