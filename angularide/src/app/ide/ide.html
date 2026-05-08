@@ -1,79 +1,64 @@
 <div class="layout">
 
   <!-- SIDEBAR -->
-
-
-<ul>
-  <h3>Bases De Datos</h3>
-  <li *ngFor="let db of databases">
-
-    <!-- DB -->
-    <div (click)="toggleDB(db)" class="db-item">
-      {{ db }}
-    </div>
-
-    <!-- TABLAS -->
-    <ul *ngIf="dbExpandida === db">
-      <li *ngFor="let t of tablasPorDB[db]">
-
-        <!-- TABLA -->
-        <div (click)="toggleTabla(db, t); $event.stopPropagation()" class="tabla-item">
-          {{ t }}
-        </div>
-
-        <!-- COLUMNAS -->
-        <ul *ngIf="tablaExpandida === t">
-          <li *ngFor="let col of columnasPorTabla[t]" class="columna-item">
-            {{ col }}
-          </li>
-        </ul>
-
-      </li>
-    </ul>
-
-  </li>
-</ul>
-
-
-  <!--
-  <aside class="sidebar">
+  <ul>
     <h3>Bases De Datos</h3>
-    <ul>
-      <li *ngFor="let db of databases" (click)="seleccionarDB(db)" [class.active]="db === dbActual">
+    <li *ngFor="let db of databases">
+
+      <!-- DB -->
+      <div (click)="toggleDB(db)" class="db-item">
         {{ db }}
-      </li>
-    </ul>
+      </div>
 
-    <h3>Tablas</h3>
+      <!-- TABLAS -->
+      <ul *ngIf="dbExpandida === db">
+        <li *ngFor="let t of tablasPorDB[db]">
 
-    <ul>
-      <li *ngFor="let t of tablas" (click)="usarTabla(t)">
-        {{ t }}
-      </li>
-    </ul>
+          <!-- TABLA -->
+          <div (click)="toggleTabla(db, t); $event.stopPropagation()" class="tabla-item">
+            {{ t }}
+          </div>
 
-    <div *ngIf="columnasTabla.length > 0">
-      <h4>Columnas</h4>
-      <ul>
-        <li *ngFor="let col of columnasTabla">
-          {{ col }}
+          <!-- COLUMNAS -->
+          <ul *ngIf="tablaExpandida === t">
+            <li *ngFor="let col of columnasPorTabla[t]" class="columna-item">
+              {{ col }}
+            </li>
+          </ul>
+
         </li>
       </ul>
-    </div>
-  </aside>
-  -->
+
+    </li>
+  </ul>
 
   <!-- MAIN -->
   <div class="main">
 
+    <div class="tabs">
+
+      <div *ngFor="let tab of tabs" (click)="cambiarTab(tab.id)" [class.active]="tab.id === tabActivaId" class="tab">
+        {{tab.nombre}}
+
+       <span
+       class="close-btn"
+       (click)="cerrarTab(tab.id, $event)">
+        X
+      </span>
+
+
+      </div>
+
+      <div class="tab add" (click)="agregarTab()">
+        +
+      </div>
+
+    </div>
+
     <!-- EDITOR -->
     <div class="editor">
 
-      <textarea
-        [(ngModel)]="sql"
-        (keydown)="onKeyDown($event)"
-        (input)="onInputChange()"
-      ></textarea>
+      <textarea [(ngModel)]="sql" (keydown)="onKeyDown($event)" (input)="onInputChange()"></textarea>
 
       <div *ngIf="sugerencias.length > 0" class="suggestions">
         <div *ngFor="let s of sugerencias" (click)="insertarSugerencias(s)">
@@ -82,6 +67,7 @@
       </div>
 
       <button (click)="ejecutar()">Run</button>
+      <button (click)="guardarScript()">Guardar</button>
 
       <div *ngIf="errorMsg" class="error">
         {{ errorMsg }}
@@ -89,9 +75,9 @@
     </div>
 
     <!-- RESULTADOS -->
-    <div class="results" *ngIf="resultados.length > 0">
+    <div class="results">
       <table>
-        <thead>
+        <thead *ngIf="columnas.length > 0">
           <tr>
             <th *ngFor="let col of columnas">{{ col }}</th>
           </tr>
@@ -100,19 +86,17 @@
           <tr *ngFor="let fila of resultados">
             <td *ngFor="let col of columnas">{{ fila[col] }}</td>
           </tr>
+
+          <tr *ngIf="columnas.length > 0 && resultados.length === 0">
+            <td [attr.colspan]="columnas.length" style="text-align:center;">
+              Sin registros
+            </td>
+          </tr>
+
         </tbody>
       </table>
     </div>
 
-    <!-- HISTORIAL -->
-    <!-- <div class="history">
-      <h3>Historial</h3>
-      <ul>
-        <li *ngFor="let h of historial" (click)="sql = h">
-          {{ h }}
-        </li>
-      </ul>
-    </div> -->
     <div class="history">
       <h3>Historial</h3>
       <table>

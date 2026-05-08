@@ -17,7 +17,18 @@ import { timestamp } from 'rxjs';
 export class Ide {
 
   //implements AfterViewInit
-  sql: string = '';
+  //sql: string = '';
+
+  get sql() {
+    return this.tabActiva?.sql || '';
+  }
+
+  set sql(value: string) {
+    if (this.tabActiva) {
+      this.tabActiva.sql = value;
+    }
+  }
+
   resultados: any[] = [];
   columnas: string[] = [];
 
@@ -35,60 +46,56 @@ export class Ide {
   historial: any[] = [];
   contadorHistorial: number = 1;
 
-  // ngAfterViewInit(): void {
-  //   this.editor = CodeMirror.fromTextArea(
-  //     document.getElementById('editor') as HTMLTextAreaElement,
-  //     {
-  //       mode: 'text/x-sql',
-  //       theme: 'material',
-  //       lineNumbers: true,
-  //     }
-  //   );
+  constructor(private queryService: Query) { }
 
-  //   this.editor.on('change', () => {
-  //     this.sql = this.editor.getValue();
-  //   });
-  // }
-
-
-  constructor(private queryService: Query) {}
-
-  ejecutar(){
+  ejecutar() {
     this.errorMsg = '';
 
 
-    if(!this.sql.trim()) return;
+    if (!this.sql.trim()) return;
 
     const inicio = performance.now();
     const query = this.sql;
     const hora = new Date().toLocaleTimeString();
 
     this.queryService.ejecutarSQL(query).subscribe({
-      next: (res:any) => {
+      next: (res: any) => {
 
         const fin = performance.now();
         const tiempo = ((fin - inicio) / 1000).toFixed(3);
         //const hora = new Date().toLocaleTimeString();
 
-        if(res.type === 'select'){
+        if (res.type === 'select') {
           this.resultados = res.data;
 
-          if(res.data.length > 0){
+          if (res.data.length > 0) {
             this.columnas = Object.keys(res.data[0]);
+          } else {
+            //this.columnas = this.columnasTabla;
+            const tabla = this.obtenerTablaDesdeSQL(query);
+
+            if (tabla) {
+              this.resultados = [];
+              this.columnas = [];
+
+              this.queryService.getColumns(tabla).subscribe(cols => {
+                this.columnas = cols;
+              });
+            }
           }
-        } else if(res.type === 'update'){
+        } else if (res.type === 'update') {
           this.resultados = [];
           this.columnas = [];
 
           this.errorMsg = '';
 
-        } else if(res.type === 'error'){
+        } else if (res.type === 'error') {
           this.errorMsg = res.message;
         }
 
         this.historial.unshift({
           id: this.contadorHistorial++,
-          time: tiempo + ' sec' ,
+          time: tiempo + ' sec',
           action: query,
           message: res.message || (res.rows + ' rows'),
           //message: res.length + ' rows',
@@ -98,100 +105,21 @@ export class Ide {
       },
       error: () => {
         this.errorMsg = 'Error en la consulta';
-
-        // this.historial.unshift({
-        //   id: this.contadorHistorial++,
-        //   time: '0 sec',
-        //   action: query,
-        //   message: 'Error',
-        //   horaseg: hora
-        // });
       }
     });
 
   }
 
-  // ejecutar(){
-  //   this.errorMsg = '';
-
-
-  //   if(!this.sql.trim()) return;
-
-  //   const inicio = performance.now();
-  //   const query = this.sql;
-  //   const hora = new Date().toLocaleTimeString();
-
-  //   this.queryService.ejecutarSQL(query).subscribe({
-  //     next: (res:any[]) => {
-
-  //       const fin = performance.now();
-  //       const tiempo = ((fin - inicio) / 1000).toFixed(3);
-  //       //const hora = new Date().toLocaleTimeString();
-
-  //       this.resultados = res;
-
-  //       if(res.length > 0){
-  //         this.columnas = Object.keys(res[0]);
-  //       }
-
-  //       this.historial.unshift({
-  //         id: this.contadorHistorial++,
-  //         time: tiempo + ' sec' ,
-  //         action: query,
-  //         message: res.length + ' rows',
-  //         horaseg: hora,
-
-  //       });
-  //     },
-  //     error: (err) => {
-  //       this.errorMsg = err.error?.message || 'Error en la consulta';
-
-  //       this.historial.unshift({
-  //         id: this.contadorHistorial++,
-  //         time: '0 sec',
-  //         action: query,
-  //         message: 'Error',
-  //         horaseg: hora
-  //       });
-  //     }
-  //   });
-
-  // }
-
-  // ejecutar() {
-  //   //console.log(this.sql);
-
-  //   this.errorMsg = '';
-
-  //   if(!this.sql.trim()) return;
-
-  //   //guardar historial
-  //   this.historial.unshift(this.sql);
-
-  //   this.queryService.ejecutarSQL(this.sql).subscribe({
-  //     next:(res: any[]) => {
-  //       this.resultados = res;
-
-  //       if(res.length > 0){
-  //         this.columnas = Object.keys(res[0]);
-  //       }
-  //     },
-  //     error: (err) => {
-  //       this.errorMsg = err.error?.message || 'Error en la consulta';
-  //     }
-  //   });
-  // }
-
-  onKeyDown(event:KeyboardEvent){
-    if(event.ctrlKey && event.key === 'Enter'){
+  onKeyDown(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === 'Enter') {
       this.ejecutar();
     }
   }
 
-  ngOnInit(){
+  ngOnInit() {
 
     // Consulta Base de datos
-    this.queryService.getDatabases().subscribe(res =>{
+    this.queryService.getDatabases().subscribe(res => {
       this.databases = res;
     })
 
@@ -201,96 +129,138 @@ export class Ide {
     });
   }
 
-  /*
-  usarTabla(tabla: string){
-    this.queryService.getColumns(tabla).subscribe(cols => {
-      this.columnasTabla = cols;
+  toggleTabla(db: string, tabla: string) {
+    if (this.tablaExpandida === tabla) {
+      this.tablaExpandida = null;
+      return;
+    }
 
+    this.tablaExpandida = tabla;
+
+    this.queryService.getColumns(tabla).subscribe(cols => {
+      this.columnasPorTabla[tabla] = cols;
+
+      // Mantener tu funcionalidad actual 👇
       this.sql = `SELECT ${cols.join(', ')} FROM ${tabla};`;
     });
   }
-    */
 
-  toggleTabla(db: string, tabla: string) {
-  if (this.tablaExpandida === tabla) {
-    this.tablaExpandida = null;
-    return;
-  }
-
-  this.tablaExpandida = tabla;
-
-  this.queryService.getColumns(tabla).subscribe(cols => {
-    this.columnasPorTabla[tabla] = cols;
-
-    // Mantener tu funcionalidad actual 👇
-    this.sql = `SELECT ${cols.join(', ')} FROM ${tabla};`;
-  });
-}
-
-  onInputChange(){
+  onInputChange() {
     const texto = this.sql.toLowerCase();
 
-    if(texto.endsWith('from ')){
+    if (texto.endsWith('from ')) {
       this.sugerencias = this.tablas;
     } else {
       this.sugerencias = [];
     }
   }
 
-  insertarSugerencias(s: string){
+  insertarSugerencias(s: string) {
     this.sql += s;
     this.sugerencias = [];
   }
 
-  /*
-  dbActual: string = '';
+  toggleDB(db: string) {
+    if (this.dbExpandida === db) {
+      this.dbExpandida = null;
+      return;
+    }
 
-  seleccionarDB(db: string){
-    this.dbActual = db;
+    this.dbExpandida = db;
+    this.tablaExpandida = null;
 
     const query = `USE ${db};`;
 
-    this.queryService.ejecutarSQL(query).subscribe((res: any) =>{
-      console.log(res);
-      //regresca tablas
-      this.cargarTablas();
+    this.queryService.ejecutarSQL(query).subscribe(() => {
+      this.queryService.getTables().subscribe(res => {
+        this.tablasPorDB[db] = res;
+      });
     });
   }
-    */
 
-  toggleDB(db: string) {
-  if (this.dbExpandida === db) {
-    this.dbExpandida = null;
-    return;
-  }
-
-  this.dbExpandida = db;
-  this.tablaExpandida = null;
-
-  const query = `USE ${db};`;
-
-  this.queryService.ejecutarSQL(query).subscribe(() => {
-    this.queryService.getTables().subscribe(res => {
-      this.tablasPorDB[db] = res;
-    });
-  });
-}
-
-  cargarTablas(){
+  cargarTablas() {
     this.queryService.getTables().subscribe(res => {
       this.tablas = res;
     });
   }
 
+  obtenerTablaDesdeSQL(sql: string): string | null {
+    const match = sql.match(/from\s+(\w+)/i);
+    return match ? match[1] : null;
+  }
+
   dbExpandida: string | null = null;
   tablaExpandida: string | null = null;
 
-// Nuevo: estructuras tipo mapa
+  // Nuevo: estructuras tipo mapa
   tablasPorDB: { [key: string]: string[] } = {};
   columnasPorTabla: { [key: string]: string[] } = {};
 
+  // nueva pesataña
+  tabs: any[] = [
+    { id: 1, nombre: 'SQL File 1', sql: '' }
+  ];
 
+  tabActivaId: number = 1;
+  contadorTabs: number = 2;
 
+  agregarTab() {
+    const nueva = {
+      id: this.contadorTabs++,
+      nombre: `SQL File ${this.contadorTabs - 1}`,
+      sql: ''
+    };
 
+    this.tabs.push(nueva);
+    this.tabActivaId = nueva.id;
+
+  }
+
+  cambiarTab(id: number) {
+    this.tabActivaId = id;
+  }
+
+  get tabActiva() {
+    return this.tabs.find(t => t.id === this.tabActivaId);
+  }
+
+  guardarScript() {
+    const contenido = this.sql;
+
+    const blob = new Blob([contenido], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = this.tabActiva.nombre = '.txt';
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+
+  }
+
+  //Cerrar pesta;a
+  cerrarTab(id: number, event: MouseEvent) {
+    event.stopPropagation(); // 🔥 evita cambiar de pestaña
+
+    const index = this.tabs.findIndex(t => t.id === id);
+
+    if (index === -1) return;
+
+    this.tabs.splice(index, 1);
+
+    // 👉 Si cerraste la pestaña activa
+    if (this.tabActivaId === id) {
+
+      if (this.tabs.length > 0) {
+        // selecciona la anterior o la primera
+        const nuevaIndex = index > 0 ? index - 1 : 0;
+        this.tabActivaId = this.tabs[nuevaIndex].id;
+      } else {
+        // si no queda ninguna, crea una nueva
+        this.agregarTab();
+      }
+    }
+  }
 
 }
