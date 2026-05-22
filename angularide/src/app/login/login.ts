@@ -21,30 +21,37 @@ export class Login {
   constructor(
     private http: HttpClient,
     private router: Router
-  ) {}
+  ) { }
 
-  login(){
+  login() {
+    this.errorMsg = '';
 
-  this.errorMsg = '';
+    this.http.post<any>('http://localhost:8080/api/login', {
+      username: this.username,
+      password: this.password
+    }).subscribe({
 
-  this.http.post('http://localhost:8080/auth/login',{
-    username: this.username,
-    password: this.password
-  }).subscribe({
+      next: (res) => {
 
-    next:(res:any) => {
+        if (res.success) {   // 🔥 validar
 
-      localStorage.setItem('usuario', JSON.stringify(res));
+          localStorage.setItem('usuario', this.username);
+          console.log(this.username);
 
-      this.router.navigate(['/ide']);
-    },
+          this.router.navigate(['/ide']);
 
-    error: () => {
-      this.errorMsg = 'Credenciales incorrectas';
-    }
+        } else {
 
-  });
+          this.errorMsg = res.message;
 
+        }
+      },
+
+      error: () => {
+        this.errorMsg = 'Error al conectar con el servidor';
+      }
+
+    });
   }
 
 }

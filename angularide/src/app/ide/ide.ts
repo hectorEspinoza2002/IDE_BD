@@ -1,11 +1,8 @@
 import { AfterViewInit, Component } from '@angular/core';
-//import { NgIf, NgForOf, CommonModule } from "../../../node_modules/@angular/common/common_module.d";>
 import { Query } from '../services/query';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-//import 'codemirror/mode/sql/sql';
-//import * as CodeMirror from 'codemirror';
-import { timestamp } from 'rxjs';
+import { Router, Routes } from '@angular/router';
 
 @Component({
   selector: 'app-ide',
@@ -46,7 +43,10 @@ export class Ide {
   historial: any[] = [];
   contadorHistorial: number = 1;
 
-  constructor(private queryService: Query) { }
+  constructor(
+    private queryService: Query,
+    private router: Router
+  ) { }
 
   ejecutar() {
     this.errorMsg = '';
@@ -261,6 +261,11 @@ export class Ide {
         this.agregarTab();
       }
     }
+  }
+
+  logout() {
+    localStorage.removeItem('usuario');
+    this.router.navigate(['/']);
   }
 
 }

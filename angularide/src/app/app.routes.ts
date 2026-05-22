@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { Ide } from './ide/ide';
+import { authGuard } from './auth-guard';
 
 export const routes: Routes = [
 
@@ -10,7 +11,8 @@ export const routes: Routes = [
     },
     {
         path: 'ide',
-        component: Ide
+        component: Ide,
+        canActivate: [authGuard]
     }
 
 
